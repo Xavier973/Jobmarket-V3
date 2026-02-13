@@ -6,18 +6,21 @@ pour faciliter le filtrage des offres France Travail.
 """
 
 # Codes ROME prioritaires pour les métiers data
+# ⚠️  CODES VALIDÉS depuis l'API France Travail (février 2026)
 ROME_CODES_DATA = {
     # Data Analysis & Business Intelligence
-    "M1403": "Études et prospective socio-économique",  # Data Analyst, Analyste données
+    "M1419": "Data analyst",  # Code spécifique pour Data Analyst (71% des offres)
     
-    # Data Engineering & Data Science
-    "M1805": "Études et développement informatique",  # Data Engineer, Data Scientist, ML Engineer
+    # Data Engineering
+    "M1811": "Data engineer",  # Code spécifique pour Data Engineer
     
-    # Conseil & Architecture
-    "M1806": "Conseil et maîtrise d'ouvrage en systèmes d'information",  # Architecte data, Chief Data Officer
+    # Data Science & Machine Learning  
+    "M1405": "Data scientist",  # Code spécifique pour Data Scientist
     
-    # Infrastructure & Production
-    "M1810": "Production et exploitation de systèmes d'information",  # Data Engineer infra
+    # Codes génériques (moins précis, contiennent beaucoup de faux positifs)
+    "M1403": "Études et prospective socio-économique",  # Chargé d'études (BTP, urbanisme) - PAS data !
+    "M1805": "Études et développement informatique",  # Développeurs généralistes (Java, C#) - PAS data !  
+    "M1806": "Conseil et maîtrise d'ouvrage en SI",  # Business analysts, consultants SI
 }
 
 # Mots-clés pour affiner la recherche dans les intitulés

@@ -21,14 +21,38 @@ JobMarket V3 repart sur une architecture modulaire pour analyser le marche de l'
 - Docker + Docker Compose
 
 ## Structure du projet (V3)
-- pipelines/ingest/ : pipeline d'ingestion et normalisation.
-- pipelines/ingest/sources/ : adapters par source.
-- storage/elasticsearch/ : index templates et helpers.
-- services/api/ : service d'API pour le dashboard.
-- apps/ : application de dashboard (a definir).
-- config/ : configuration et exemples d'environnement.
-- docs/ : documentation d'architecture, schema, operations.
-- data/ : donnees brutes et normalisees.
+```
+Jobmarket_V3/
+├── pipelines/           # Pipeline d'ingestion et normalisation
+│   └── ingest/
+│       ├── sources/     # Adapters par source (francetravail, apec, etc.)
+│       ├── models.py    # Schéma canonique JobOffer
+│       ├── normalizer.py
+│       └── io.py
+│
+├── scripts/             # Scripts utilitaires
+│   ├── analysis/        # Scripts d'analyse des données
+│   │   ├── analyze_data_analyst.py
+│   │   └── examples_visualization.py
+│   └── maintenance/     # Scripts de maintenance
+│       └── fix_line_endings.py
+│
+├── tests/               # Tests de validation
+│   └── test_enriched_mapping.py
+│
+├── data/                # Données brutes et normalisées
+│   ├── raw/francetravail/
+│   └── normalized/francetravail/
+│
+├── docs/                # Documentation
+│   ├── architecture.md
+│   ├── data-model.md
+│   ├── guide-collecte-francetravail.md
+│   └── ops.md
+│
+└── config/              # Configuration
+    └── .env.example
+```
 
 ## Configuration
 Exemple d'environnement : [config/.env.example](config/.env.example)
@@ -42,14 +66,41 @@ Variables principales :
 - FT_API_SCOPE=api_offresdemploiv2 o2dsoffre
 - INGEST_OUTPUT_DIR=./data
 
-## Demarrage rapide (ingestion France Travail)
+## Démarrage rapide (ingestion France Travail)
 1. Copier l'environnement :
-   - copy config/.env.example config/.env
+   ```bash
+   copy config/.env.example config/.env
+   ```
 2. Renseigner les variables France Travail.
 3. Lancer l'ingestion :
-   - python -m pipelines.ingest.sources.francetravail.main
-4. Lancer un echantillon :
-   - python -m pipelines.ingest.sources.francetravail.main --sample
+   ```bash
+   # Collecte par mots-clés (recommandé)
+   python -m pipelines.ingest.sources.francetravail.main --keywords "data analyst" --limit 200
+   
+   # Collecte par codes ROME (moins précis)
+   python -m pipelines.ingest.sources.francetravail.main --rome-codes M1419,M1811,M1405 --limit 200
+   
+   # Mode échantillon (test)
+   python -m pipelines.ingest.sources.francetravail.main --sample
+   ```
+
+## Analyse des données collectées
+```bash
+# Analyser les offres Data Analyst
+python scripts/analysis/analyze_data_analyst.py
+
+# Exemples de visualisations (salaires, compétences, etc.)
+python scripts/analysis/examples_visualization.py
+
+# Valider le mapping enrichi
+python tests/test_enriched_mapping.py
+```
+
+## Maintenance
+```bash
+# Corriger les fins de ligne des fichiers JSONL
+python scripts/maintenance/fix_line_endings.py
+```
 
 ## Roadmap courte
 - Etude comparative du dashboard (voir [docs/dashboard-eval.md](docs/dashboard-eval.md)).

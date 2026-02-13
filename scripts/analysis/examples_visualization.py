@@ -3,8 +3,21 @@ Exemple de visualisation des données enrichies France Travail.
 Démontre l'utilisation des nouveaux champs pour l'analyse de marché.
 """
 
-import json
+import sys
+import io
 from pathlib import Path
+
+# Forcer l'encodage UTF-8 pour Windows PowerShell
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+# Ajouter la racine du projet au PYTHONPATH
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+import json
 from collections import Counter
 from pipelines.ingest.sources.francetravail.mapping import map_france_travail
 
