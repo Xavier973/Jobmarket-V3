@@ -1,0 +1,1 @@
+"""France Travail API adapter."""
