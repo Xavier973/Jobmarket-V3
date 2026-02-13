@@ -34,25 +34,34 @@ JobMarket V3 repart sur une architecture modulaire pour analyser le marche de l'
 Exemple d'environnement : [config/.env.example](config/.env.example)
 
 Variables principales :
-- FT_API_BASE_URL=
-- FT_API_TOKEN_URL=
+- FT_API_BASE_URL=https://api.francetravail.io/partenaire/offresdemploi
+- FT_API_TOKEN_URL=https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=%2Fpartenaire
 - FT_API_CLIENT_ID=
 - FT_API_CLIENT_SECRET=
-- FT_API_SEARCH_URL=
+- FT_API_SEARCH_URL=https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search
+- FT_API_SCOPE=api_offresdemploiv2 o2dsoffre
 - INGEST_OUTPUT_DIR=./data
 
 ## Demarrage rapide (ingestion France Travail)
 1. Copier l'environnement :
-   - copy config/.env.example .env
+   - copy config/.env.example config/.env
 2. Renseigner les variables France Travail.
 3. Lancer l'ingestion :
    - python -m pipelines.ingest.sources.francetravail.main
+4. Lancer un echantillon :
+   - python -m pipelines.ingest.sources.francetravail.main --sample
 
 ## Roadmap courte
 - Etude comparative du dashboard (voir [docs/dashboard-eval.md](docs/dashboard-eval.md)).
 - Mise en place du service API.
 - Indexation ElasticSearch et tests d'aggregations.
 - Ajout d'une 2eme source (APEC ou WTTJ) pour valider l'extensibilite.
+
+## Troubleshooting API France Travail
+- Erreur 401: verifier `FT_API_CLIENT_ID`, `FT_API_CLIENT_SECRET` et `FT_API_SCOPE`.
+- Erreur 400: verifier `FT_API_TOKEN_URL` et le format `application/x-www-form-urlencoded`.
+- Erreur 429: respecter `Retry-After` et limiter le nombre d'appels par seconde.
+- Aucun resultat: verifier les parametres de recherche et tester en mode bac a sable.
 
 ## Licence
 Projet interne / usage prive.
