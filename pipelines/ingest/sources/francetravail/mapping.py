@@ -183,47 +183,53 @@ def _parse_weekly_hours(duree_travail: str) -> Optional[float]:
     return None
 
 
-def map_france_travail(raw: Dict[str, Any]) -> JobOffer:
-    """Mappe les données brutes France Travail vers le modèle JobOffer enrichi."""
+def map_france_travail(raw_offer: Dict[str, Any], include_raw: bool = False) -> JobOffer:
+    """Mappe les données brutes France Travail vers le modèle JobOffer enrichi.
+    
+    Args:
+        raw_offer: Données brutes de l'API France Travail
+        include_raw: Si True, inclut les données brutes dans le champ raw (défaut: False)
+                     Les données brutes sont déjà sauvegardées dans data/raw/
+    """
     
     # === Identification ===
-    source_id = raw.get("id") or raw.get("id_offre") or "unknown"
+    source_id = raw_offer.get("id") or raw_offer.get("id_offre") or "unknown"
     
     # === Informations de base ===
-    title = raw.get("intitule") or raw.get("title")
-    description = raw.get("description")
-    company_name = _get_nested(raw, "entreprise.nom") or raw.get("entreprise")
+    title = raw_offer.get("intitule") or raw_offer.get("title")
+    description = raw_offer.get("description")
+    company_name = _get_nested(raw_offer, "entreprise.nom") or raw_offer.get("entreprise")
     
     # === Classification métier ===
-    rome_code = raw.get("romeCode")
-    rome_label = raw.get("romeLibelle")
-    job_category = raw.get("appellationlibelle")
-    naf_code = raw.get("codeNAF")
-    sector = raw.get("secteurActivite")
-    sector_label = raw.get("secteurActiviteLibelle")
+    rome_code = raw_offer.get("romeCode")
+    rome_label = raw_offer.get("romeLibelle")
+    job_category = raw_offer.get("appellationlibelle")
+    naf_code = raw_offer.get("codeNAF")
+    sector = raw_offer.get("secteurActivite")
+    sector_label = raw_offer.get("secteurActiviteLibelle")
     
     # === Localisation ===
-    location_city = _get_nested(raw, "lieuTravail.libelle") or raw.get("lieu")
-    location_department = _get_nested(raw, "lieuTravail.codePostal")
-    location_latitude = _get_nested(raw, "lieuTravail.latitude")
-    location_longitude = _get_nested(raw, "lieuTravail.longitude")
-    location_commune_code = _get_nested(raw, "lieuTravail.commune")
+    location_city = _get_nested(raw_offer, "lieuTravail.libelle") or raw_offer.get("lieu")
+    location_department = _get_nested(raw_offer, "lieuTravail.codePostal")
+    location_latitude = _get_nested(raw_offer, "lieuTravail.latitude")
+    location_longitude = _get_nested(raw_offer, "lieuTravail.longitude")
+    location_commune_code = _get_nested(raw_offer, "lieuTravail.commune")
     
     # === Contrat ===
-    contract_type = raw.get("typeContratLibelle") or raw.get("typeContrat")
-    contract_nature = raw.get("natureContrat")
-    work_schedule = raw.get("dureeTravailLibelleConverti")  # Temps plein/partiel
-    duree_travail = raw.get("dureeTravailLibelle")
+    contract_type = raw_offer.get("typeContratLibelle") or raw_offer.get("typeContrat")
+    contract_nature = raw_offer.get("natureContrat")
+    work_schedule = raw_offer.get("dureeTravailLibelleConverti")  # Temps plein/partiel
+    duree_travail = raw_offer.get("dureeTravailLibelle")
     weekly_hours = _parse_weekly_hours(duree_travail) if duree_travail else None
-    is_alternance = raw.get("alternance")
+    is_alternance = raw_offer.get("alternance")
     
     # === Rémunération ===
-    salary_data = raw.get("salaire", {})
+    salary_data = raw_offer.get("salaire", {})
     salary_min, salary_max, salary_unit, salary_comment = _parse_salary(salary_data)
     salary_benefits = _extract_benefits(salary_data)
     
     # === Compétences ===
-    competences = raw.get("competences", [])
+    competences = raw_offer.get("competences", [])
     skills_required = _extract_skills(competences, exigence_filter="E")  # Exigées
     skills_desired = _extract_skills(competences, exigence_filter="S")  # Souhaitées
     
@@ -231,36 +237,36 @@ def map_france_travail(raw: Dict[str, Any]) -> JobOffer:
     all_skills = _extract_skills(competences)
     skills = [s["label"] for s in all_skills] if all_skills else None
     
-    soft_skills = _extract_soft_skills(raw.get("qualitesProfessionnelles", []))
-    languages = _extract_languages(raw.get("langues", []))
+    soft_skills = _extract_soft_skills(raw_offer.get("qualitesProfessionnelles", []))
+    languages = _extract_languages(raw_offer.get("langues", []))
     
     # === Formation & Expérience ===
-    formations = raw.get("formations", [])
+    formations = raw_offer.get("formations", [])
     education_required = _extract_formations(formations)
     # Prendre le niveau le plus élevé comme niveau principal
     education_level = formations[0].get("niveauLibelle") if formations else None
     
-    experience_required = raw.get("experienceLibelle")
-    experience_code = raw.get("experienceExige")
+    experience_required = raw_offer.get("experienceLibelle")
+    experience_code = raw_offer.get("experienceExige")
     # TODO: classifier experience_level (junior/confirmé/senior) via reference_data
     
     # === Entreprise ===
-    company_size = raw.get("trancheEffectifEtab")
-    company_adapted = raw.get("entrepriseAdaptee")
+    company_size = raw_offer.get("trancheEffectifEtab")
+    company_adapted = raw_offer.get("entrepriseAdaptee")
     
     # === Conditions de travail ===
-    work_context = _extract_work_context(raw.get("contexteTravail", {}))
-    permits_required = _extract_permits(raw.get("permis", []))
-    travel_frequency = raw.get("deplacementLibelle")
-    accessible_handicap = raw.get("accessibleTH")
+    work_context = _extract_work_context(raw_offer.get("contexteTravail", {}))
+    permits_required = _extract_permits(raw_offer.get("permis", []))
+    travel_frequency = raw_offer.get("deplacementLibelle")
+    accessible_handicap = raw_offer.get("accessibleTH")
     
     # === Métadonnées ===
-    published_at = raw.get("dateCreation") or raw.get("datePublication")
-    updated_at = raw.get("dateActualisation")
-    positions_count = raw.get("nombrePostes")
-    qualification_code = raw.get("qualificationCode")
-    qualification_label = raw.get("qualificationLibelle")
-    url = _get_nested(raw, "origineOffre.urlOrigine")
+    published_at = raw_offer.get("dateCreation") or raw_offer.get("datePublication")
+    updated_at = raw_offer.get("dateActualisation")
+    positions_count = raw_offer.get("nombrePostes")
+    qualification_code = raw_offer.get("qualificationCode")
+    qualification_label = raw_offer.get("qualificationLibelle")
+    url = _get_nested(raw_offer, "origineOffre.urlOrigine")
     
     return JobOffer(
         # Identification
@@ -332,5 +338,5 @@ def map_france_travail(raw: Dict[str, Any]) -> JobOffer:
         qualification_code=qualification_code,
         qualification_label=qualification_label,
         url=url,
-        raw=raw,
+        raw=raw_offer if include_raw else None,
     )
