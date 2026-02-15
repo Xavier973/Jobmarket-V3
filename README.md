@@ -74,13 +74,20 @@ Variables principales :
 2. Renseigner les variables France Travail.
 3. Lancer l'ingestion :
    ```bash
-   # Collecte par mots-clés (recommandé)
+   # Collecte complète avec découpage automatique (contourne la limite de 150)
+   python -m pipelines.ingest.sources.francetravail.main --keywords "data analyst" --split-by-contract
+   python -m pipelines.ingest.sources.francetravail.main --keywords "data engineer" --split-by-contract
+   
+   # Collecte simple (limitée à 150 offres par l'API)
+   python -m pipelines.ingest.sources.francetravail.main --keywords "data analyst"
+   
+   # Collecte limitée (nombre d'offres spécifique)
    python -m pipelines.ingest.sources.francetravail.main --keywords "data analyst" --limit 200
    
-   # Collecte par codes ROME (moins précis)
-   python -m pipelines.ingest.sources.francetravail.main --rome-codes M1419,M1811,M1405 --limit 200
+   # Collecte par codes ROME
+   python -m pipelines.ingest.sources.francetravail.main --rome-codes M1419,M1811,M1405
    
-   # Mode échantillon (test)
+   # Mode échantillon (test rapide)
    python -m pipelines.ingest.sources.francetravail.main --sample
    ```
 
@@ -108,11 +115,13 @@ python scripts/maintenance/fix_line_endings.py
 - Indexation ElasticSearch et tests d'aggregations.
 - Ajout d'une 2eme source (APEC ou WTTJ) pour valider l'extensibilite.
 
-## Troubleshooting API France Travail
+##  Troubleshooting API France Travail
 - Erreur 401: verifier `FT_API_CLIENT_ID`, `FT_API_CLIENT_SECRET` et `FT_API_SCOPE`.
 - Erreur 400: verifier `FT_API_TOKEN_URL` et le format `application/x-www-form-urlencoded`.
 - Erreur 429: respecter `Retry-After` et limiter le nombre d'appels par seconde.
 - Aucun resultat: verifier les parametres de recherche et tester en mode bac a sable.
+- **Pagination avec le paramètre `range`**: L'API utilise le paramètre `range` (format `"0-149"`, `"150-299"`) au lieu de `page`/`size`. Maximum 1150 offres par recherche (range 0-149 + 150-299 + ... + 1000-1149). Pour aller au-delà, utiliser `--split-by-contract` ou subdiviser par dates (`minCreationDate`/`maxCreationDate`).
+- **Écart avec le site web**: Le site France Travail affiche beaucoup plus d'offres (ex: 1337 pour "data engineer" vs 353 via l'API). **Raison principale** : le site utilise une recherche floue qui renvoie des résultats peu pertinents (ex: "Développeur COBOL" apparaît pour "data engineer"). L'API est plus stricte et ne renvoie que les offres vraiment pertinentes. **Conclusion** : Les 353 offres API sont de meilleure qualité que les 1337 du site (moins de bruit). Le site inclut aussi quelques offres partenaires (Indeed, Monster, LinkedIn) non accessibles via l'API publique.
 
 ## Licence
 Projet interne / usage prive.

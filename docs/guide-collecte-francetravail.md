@@ -5,10 +5,13 @@
 ### ✅ Méthode recommandée : Recherche par mots-clés
 
 ```bash
-# Ciblage précis des métiers data
+# Collecte complète (toutes les offres disponibles)
+python -m pipelines.ingest.sources.francetravail.main --keywords "data analyst"
+python -m pipelines.ingest.sources.francetravail.main --keywords "data engineer"
+python -m pipelines.ingest.sources.francetravail.main --keywords "data scientist"
+
+# Ou avec limite si besoin
 python -m pipelines.ingest.sources.francetravail.main --keywords "data analyst" --limit 200
-python -m pipelines.ingest.sources.francetravail.main --keywords "data engineer" --limit 200
-python -m pipelines.ingest.sources.francetravail.main --keywords "data scientist" --limit 200
 ```
 
 **Avantages :**
@@ -59,29 +62,34 @@ python -m pipelines.ingest.sources.francetravail.main --rome-codes M1419,M1811,M
 
 ## 📊 Stratégie de collecte complète
 
-### Étape 1 : Collecte ciblée par mots-clés
+### Étape 1 : Collecte ciblée par mots-clés avec découpage automatique
 
 ```bash
-# Data Analyst
-python -m pipelines.ingest.sources.francetravail.main \
-  --keywords "data analyst" \
-  --limit 500
+# Collecte maximale via l'API (~350 offres par mot-clé)
+# Découpe automatiquement par type de contrat + expérience
+python -m pipelines.ingest.sources.francetravail.main --keywords "data analyst" --split-by-contract
+python -m pipelines.ingest.sources.francetravail.main --keywords "data engineer" --split-by-contract
+python -m pipelines.ingest.sources.francetravail.main --keywords "data scientist" --split-by-contract
+python -m pipelines.ingest.sources.francetravail.main --keywords "business intelligence" --split-by-contract
 
-# Data Engineer  
-python -m pipelines.ingest.sources.francetravail.main \
-  --keywords "data engineer" \
-  --limit 500
-
-# Data Scientist
-python -m pipelines.ingest.sources.francetravail.main \
-  --keywords "data scientist" \
-  --limit 500
-
-# Business Intelligence
-python -m pipelines.ingest.sources.francetravail.main \
-  --keywords "business intelligence" \
-  --limit 500
+# Ou avec limite pour tests rapides
+python -m pipelines.ingest.sources.francetravail.main --keywords "data analyst" --limit 100
 ```
+
+### ⚠️ Limitation importante de l'API France Travail
+
+L'API publique France Travail a des **restrictions sévères** :
+- **Maximum 150 résultats** par combinaison de filtres
+- **Maximum 1150 résultats** par recherche (via pagination `range`)
+- **Total ~350 offres** maximum par mot-clé pour des termes spécifiques ("data engineer", "data analyst")
+
+**Écart avec le site web** : Le site affiche **1337 offres "data engineer"** mais l'API n'en donne que **353**.
+
+**Raison principale** : Le site utilise une **recherche floue** qui renvoie beaucoup de **faux positifs** (ex: "Développeur COBOL" apparaît pour "data engineer"). L'API est **plus stricte** et ne renvoie que les offres réellement pertinentes.
+
+**Conclusion** : Les **353 offres API sont de meilleure qualité** que les 1337 du site (moins de bruit, plus de pertinence).
+
+**Pour diversifier** : Ajouter d'autres sources de données (APEC, LinkedIn, Indeed) pour élargir la couverture.
 
 ### Étape 2 : Validation des résultats
 

@@ -1,8 +1,11 @@
 import json
+import logging
 import os
 import time
 from typing import Any, Dict, Optional
 from urllib import request, parse
+
+logger = logging.getLogger(__name__)
 
 
 class FranceTravailClient:
@@ -21,7 +24,25 @@ class FranceTravailClient:
         if headers:
             for key, value in headers.items():
                 req.add_header(key, value)
+        
+        # Log request details (mask secrets)
+        safe_headers = {k: ("Bearer ***" if k == "Authorization" else v) for k, v in (headers or {}).items()}
+        logger.info(f"🌐 API Request: {method} {url}")
+        logger.info(f"📋 Headers: {safe_headers}")
+        
         with request.urlopen(req, timeout=60) as response:
+            status_code = response.status
+            response_headers = dict(response.headers)
+            
+            # Log response details
+            logger.info(f"✅ HTTP Status: {status_code}")
+            
+            # Log pagination indicators
+            if "Content-Range" in response_headers:
+                logger.info(f"📊 Content-Range: {response_headers['Content-Range']}")
+            if "X-Total-Count" in response_headers:
+                logger.info(f"📊 X-Total-Count: {response_headers['X-Total-Count']}")
+            
             return parse_json(response.read().decode("utf-8"))
 
     def _get_token(self) -> str:
@@ -62,7 +83,19 @@ class FranceTravailClient:
         query = parse.urlencode(params)
         url = f"{self.search_url}?{query}"
         headers = {"Authorization": f"Bearer {token}"}
-        return self._request_json(url, headers=headers)
+        
+        result = self._request_json(url, headers=headers)
+        
+        # Log server-side pagination metadata from response body
+        if "maxResults" in result:
+            logger.info(f"📊 Server maxResults: {result['maxResults']} (limite totale serveur)")
+        if "filtresPossibles" in result:
+            # Log aggregate counts to prove server-side limits
+            aggregates = result["filtresPossibles"]
+            if aggregates:
+                logger.info(f"📊 Server aggregates: {aggregates[:3]}...")  # First 3 to avoid spam
+        
+        return result
 
 
 def parse_json(payload: str) -> Dict[str, Any]:
