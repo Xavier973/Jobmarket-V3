@@ -43,6 +43,10 @@ class FranceTravailClient:
             if "X-Total-Count" in response_headers:
                 logger.info(f"📊 X-Total-Count: {response_headers['X-Total-Count']}")
             
+            # HTTP 204 No Content: pas de données, retourner un dict vide
+            if status_code == 204:
+                return {"resultats": []}
+            
             return parse_json(response.read().decode("utf-8"))
 
     def _get_token(self) -> str:
