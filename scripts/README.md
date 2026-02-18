@@ -4,7 +4,31 @@ Ce dossier contient les scripts utilitaires du projet JobMarket V3.
 
 ## Structure
 
-### 📊 `analysis/`
+### � Elasticsearch
+Scripts pour l'indexation et l'interrogation des données.
+
+**Fichiers :**
+- `index_to_elasticsearch.py` : Indexation des offres dans Elasticsearch
+- `query_elasticsearch.py` : Exemples de requêtes et analyses avec Elasticsearch
+
+**Utilisation :**
+```bash
+# Indexer toutes les offres France Travail
+python scripts/index_to_elasticsearch.py --source francetravail
+
+# Indexer un fichier spécifique
+python scripts/index_to_elasticsearch.py --source francetravail --file offers_kw_data_engineer.jsonl
+
+# Forcer la recréation de l'index
+python scripts/index_to_elasticsearch.py --source francetravail --force
+
+# Exécuter des exemples de requêtes
+python scripts/query_elasticsearch.py
+```
+
+---
+
+### �📊 `analysis/`
 Scripts d'analyse et de visualisation des données collectées.
 
 **Fichiers :**

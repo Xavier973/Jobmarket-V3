@@ -228,7 +228,7 @@ def main():
     
     if stats:
         # Afficher le rapport détaillé
-        print_detailed_report(stats, show_all=True)
+        print_detailed_report(stats, show_all=False)
         
         if stats['duplicate_ids'] > 0:
             print("\n" + "=" * 80)

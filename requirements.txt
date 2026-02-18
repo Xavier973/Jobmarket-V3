@@ -1,0 +1,13 @@
+# JobMarket V3 - Dépendances Python
+
+# API et HTTP
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Elasticsearch
+elasticsearch>=8.11.0
+
+# Data science & analyse (optionnel pour les scripts d'analyse)
+pandas>=2.1.0
+matplotlib>=3.8.0
+seaborn>=0.13.0

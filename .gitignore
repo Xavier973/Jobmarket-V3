@@ -1,8 +1,31 @@
+# Environment
 .env
-__pycache__/
-*.pyc
-.venv/
-venv/
 .env.*
 config/.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+*.egg-info/
+
+# Data
 data/
+
+# Docker volumes
+es_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

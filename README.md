@@ -24,13 +24,17 @@ JobMarket V3 repart sur une architecture modulaire pour analyser le marche de l'
 ```
 Jobmarket_V3/
 ├── pipelines/           # Pipeline d'ingestion et normalisation
-│   └── ingest/
-│       ├── sources/     # Adapters par source (francetravail, apec, etc.)
-│       ├── models.py    # Schéma canonique JobOffer
-│       ├── normalizer.py
-│       └── io.py
+│   ├── ingest/
+│   │   ├── sources/     # Adapters par source (francetravail, apec, etc.)
+│   │   ├── models.py    # Schéma canonique JobOffer
+│   │   ├── normalizer.py
+│   │   └── io.py
+│   └── storage/         # Module de stockage Elasticsearch
+│       ├── elasticsearch.py
+│       └── __init__.py
 │
 ├── scripts/             # Scripts utilitaires
+│   ├── index_to_elasticsearch.py  # Indexation dans Elasticsearch
 │   ├── analysis/        # Scripts d'analyse des données
 │   │   ├── analyze_data_analyst.py
 │   │   └── examples_visualization.py
@@ -47,11 +51,15 @@ Jobmarket_V3/
 ├── docs/                # Documentation
 │   ├── architecture.md
 │   ├── data-model.md
+│   ├── elasticsearch.md
 │   ├── guide-collecte-francetravail.md
 │   └── ops.md
 │
-└── config/              # Configuration
-    └── .env.example
+├── config/              # Configuration
+│   └── .env.example
+│
+├── docker-compose.yml   # Elasticsearch + Kibana
+└── requirements.txt     # Dépendances Python
 ```
 
 ## Configuration
@@ -91,6 +99,39 @@ Variables principales :
    python -m pipelines.ingest.sources.francetravail.main --sample
    ```
 
+## Démarrage Elasticsearch et indexation
+1. Démarrer Elasticsearch et Kibana :
+   ```bash
+   # Démarrer les conteneurs Docker
+   docker-compose up -d
+   
+   # Vérifier que les services sont démarrés
+   docker-compose ps
+   ```
+
+2. Installer les dépendances Python :
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Indexer les données dans Elasticsearch :
+   ```bash
+   # Indexer toutes les offres France Travail
+   python scripts/index_to_elasticsearch.py --source francetravail
+   
+   # Indexer un fichier spécifique
+   python scripts/index_to_elasticsearch.py --source francetravail --file offers_kw_data_engineer.jsonl
+   
+   # Forcer la recréation de l'index (supprime les données existantes)
+   python scripts/index_to_elasticsearch.py --source francetravail --force
+   ```
+
+4. Accéder aux interfaces :
+   - **Elasticsearch** : http://localhost:9200
+   - **Kibana** : http://localhost:5601
+
+📖 Pour plus de détails, voir [docs/elasticsearch.md](docs/elasticsearch.md)
+
 ## Analyse des données collectées
 ```bash
 # Analyser les offres Data Analyst
@@ -112,7 +153,7 @@ python scripts/maintenance/fix_line_endings.py
 ## Roadmap courte
 - Etude comparative du dashboard (voir [docs/dashboard-eval.md](docs/dashboard-eval.md)).
 - Mise en place du service API.
-- Indexation ElasticSearch et tests d'aggregations.
+- ✅ Indexation ElasticSearch et tests d'aggregations.
 - Ajout d'une 2eme source (APEC ou WTTJ) pour valider l'extensibilite.
 
 ##  Troubleshooting API France Travail
