@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { statsApi } from '@/lib/api'
-import type { OverviewStats } from '@/types/stats'
+import { statsApi, analyticsApi } from '@/lib/api'
+import type { OverviewStats, TimelineData } from '@/types/stats'
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<OverviewStats | null>(null)
+  const [timeline, setTimeline] = useState<TimelineData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -13,8 +14,12 @@ export default function DashboardPage() {
     async function fetchStats() {
       try {
         setLoading(true)
-        const data = await statsApi.overview()
-        setStats(data)
+        const [statsData, timelineData] = await Promise.all([
+          statsApi.overview(),
+          analyticsApi.timeline({ interval: 'week' })
+        ])
+        setStats(statsData)
+        setTimeline(timelineData)
       } catch (err) {
         console.error('Erreur chargement stats:', err)
         setError('Impossible de charger les statistiques. Vérifiez que le backend est démarré.')
@@ -95,7 +100,7 @@ export default function DashboardPage() {
           <KPICard
             title="Salaire moyen"
             value={`${Math.round(stats?.salary_median || 0).toLocaleString('fr-FR')} €`}
-            subtitle="/mois"
+            subtitle="/an"
             color="green"
           />
           <KPICard
@@ -145,7 +150,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Contract Distribution */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Distribution des contrats</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats?.contract_distribution?.slice(0, 4).map((contract, index) => (
@@ -155,6 +160,16 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Timeline Chart */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Évolution des offres publiées</h2>
+          {timeline.length > 0 ? (
+            <TimelineChart data={timeline} />
+          ) : (
+            <p className="text-gray-500 text-center py-8">Aucune donnée disponible</p>
+          )}
         </div>
       </main>
     </div>
@@ -186,6 +201,44 @@ function KPICard({
         {value}
         {subtitle && <span className="text-lg ml-1 opacity-75">{subtitle}</span>}
       </p>
+    </div>
+  )
+}
+
+function TimelineChart({ data }: { data: TimelineData[] }) {
+  if (!data || data.length === 0) return null
+
+  const maxCount = Math.max(...data.map(d => d.count))
+
+  return (
+    <div className="space-y-2">
+      {data.map((point, index) => {
+        const percentage = (point.count / maxCount) * 100
+        const date = new Date(point.date)
+        const formattedDate = date.toLocaleDateString('fr-FR', { 
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        })
+
+        return (
+          <div key={index} className="flex items-center gap-3">
+            <div className="w-32 text-sm text-gray-600 font-medium">
+              {formattedDate}
+            </div>
+            <div className="flex-1 bg-gray-100 rounded-full h-8 relative">
+              <div
+                className="bg-gradient-to-r from-primary-500 to-primary-600 h-8 rounded-full flex items-center justify-end px-3 transition-all duration-500"
+                style={{ width: `${Math.max(percentage, 5)}%` }}
+              >
+                <span className="text-white text-sm font-semibold">
+                  {point.count}
+                </span>
+              </div>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

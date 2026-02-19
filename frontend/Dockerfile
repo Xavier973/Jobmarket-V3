@@ -8,17 +8,14 @@ RUN apk add --no-cache curl
 # Copier les fichiers de dépendances
 COPY package*.json ./
 
-# Installer les dépendances
-RUN npm ci --only=production
+# Installer toutes les dépendances (dev incluses pour le hot reload)
+RUN npm ci
 
 # Copier le code source
 COPY . .
 
-# Build l'application
-RUN npm run build
-
 # Exposer le port
 EXPOSE 3000
 
-# Démarrer l'application
-CMD ["npm", "start"]
+# Démarrer en mode dev (peut être surchargé par docker-compose)
+CMD ["npm", "run", "dev"]
