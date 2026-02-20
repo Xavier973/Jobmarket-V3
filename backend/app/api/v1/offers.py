@@ -22,6 +22,8 @@ async def list_offers(
     regions: Optional[str] = Query(None, description="Régions (séparées par virgule)"),
     departments: Optional[str] = Query(None, description="Départements (séparés par virgule)"),
     contract_types: Optional[str] = Query(None, description="Types de contrat (séparés par virgule)"),
+    rome_labels: Optional[str] = Query(None, description="Métiers ROME (séparés par virgule)"),
+    remote_types: Optional[str] = Query(None, description="Types de télétravail (séparés par virgule)"),
     salary_min: Optional[float] = Query(None, description="Salaire minimum"),
     salary_max: Optional[float] = Query(None, description="Salaire maximum"),
 ):
@@ -30,12 +32,14 @@ async def list_offers(
     """
     # Construire l'objet FilterRequest depuis les query params
     filters = None
-    if any([keywords, regions, departments, contract_types, salary_min, salary_max]):
+    if any([keywords, regions, departments, contract_types, rome_labels, remote_types, salary_min, salary_max]):
         filters = FilterRequest(
             keywords=keywords.split(",") if keywords else None,
             regions=regions.split(",") if regions else None,
             departments=departments.split(",") if departments else None,
             contract_types=contract_types.split(",") if contract_types else None,
+            rome_labels=rome_labels.split(",") if rome_labels else None,
+            remote_types=remote_types.split(",") if remote_types else None,
             salary_min=salary_min,
             salary_max=salary_max,
         )

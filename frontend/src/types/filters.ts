@@ -12,7 +12,10 @@ export interface FilterRequest {
   salary_max?: number;
   experience_levels?: string[];
   rome_codes?: string[];
+  rome_labels?: string[];
   skills?: string[];
+  is_remote?: boolean;
+  remote_types?: string[];
   date_from?: string;
   date_to?: string;
 }

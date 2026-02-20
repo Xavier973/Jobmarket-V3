@@ -16,6 +16,7 @@ class FilterRequest(BaseModel):
     salary_max: Optional[float] = Field(None, description="Salaire maximum")
     experience_levels: Optional[List[str]] = Field(None, description="Niveaux d'expérience")
     rome_codes: Optional[List[str]] = Field(None, description="Codes ROME")
+    rome_labels: Optional[List[str]] = Field(None, description="Métiers ROME")
     skills: Optional[List[str]] = Field(None, description="Compétences requises")
     is_remote: Optional[bool] = Field(None, description="Filtrer par télétravail (True=uniquement télétravail)")
     remote_types: Optional[List[str]] = Field(None, description="Types de télétravail (full_remote, hybrid, occasional)")

@@ -1,11 +1,43 @@
 """
 Routes pour les options de filtres
 """
-from typing import List
+import json
+from pathlib import Path
+from typing import List, Dict
 from fastapi import APIRouter
 from app.services.elasticsearch import es_service
 
 router = APIRouter()
+
+# Charger le référentiel des départements
+DEPARTMENTS_FILE = Path(__file__).parent.parent.parent / "data" / "departments.json"
+DEPARTMENTS_MAP = {}
+try:
+    with open(DEPARTMENTS_FILE, "r", encoding="utf-8") as f:
+        DEPARTMENTS_MAP = json.load(f)
+except Exception as e:
+    print(f"Erreur chargement référentiel départements: {e}")
+
+
+def extract_department_code(postal_code: str) -> str:
+    """Extrait le code département d'un code postal (2 ou 3 premiers caractères)"""
+    if not postal_code:
+        return ""
+    
+    # DOM-TOM (3 chiffres)
+    if postal_code.startswith(("97", "98")):
+        return postal_code[:3]
+    
+    # Corse (code spécial)
+    if postal_code.startswith("20"):
+        # Distinguer 2A et 2B (approximatif, basé sur le code postal)
+        if postal_code[:5] in ["20000", "20090", "20100", "20110", "20137", "20140", "20150", "20166", "20167", "20200"]:
+            return "2A"
+        else:
+            return "2B"
+    
+    # France métropolitaine (2 chiffres)
+    return postal_code[:2]
 
 
 @router.get("/regions")
@@ -31,8 +63,8 @@ async def get_regions() -> List[str]:
 
 
 @router.get("/departments")
-async def get_departments(region: str = None) -> List[str]:
-    """Liste des départements disponibles (optionnellement filtrés par région)"""
+async def get_departments(region: str = None) -> List[Dict[str, str]]:
+    """Liste des départements disponibles avec leurs noms (optionnellement filtrés par région)"""
     query = {"match_all": {}}
     if region:
         query = {"term": {"location_region": region}}
@@ -51,7 +83,27 @@ async def get_departments(region: str = None) -> List[str]:
             }
         )
         buckets = response["aggregations"]["departments"]["buckets"]
-        return [b["key"] for b in buckets if b["key"]]
+        
+        # Extraire les codes départements uniques et les enrichir avec les noms
+        departments_set = set()
+        for bucket in buckets:
+            postal_code = bucket["key"]
+            if postal_code:
+                dept_code = extract_department_code(postal_code)
+                if dept_code:
+                    departments_set.add(dept_code)
+        
+        # Créer la liste enrichie
+        result = []
+        for code in sorted(departments_set):
+            name = DEPARTMENTS_MAP.get(code, code)
+            result.append({
+                "code": code,
+                "name": name,
+                "label": f"{name} ({code})"
+            })
+        
+        return result
     except Exception as e:
         print(f"Erreur récupération départements: {e}")
         return []
@@ -147,4 +199,48 @@ async def get_rome_codes() -> List[str]:
         return [b["key"] for b in buckets if b["key"]]
     except Exception as e:
         print(f"Erreur récupération codes ROME: {e}")
+        return []
+
+
+@router.get("/rome-labels")
+async def get_rome_labels() -> List[str]:
+    """Liste des métiers ROME disponibles"""
+    try:
+        response = es_service.es.search(
+            index=es_service.index_name,
+            body={
+                "size": 0,
+                "aggs": {
+                    "labels": {
+                        "terms": {"field": "rome_label.keyword", "size": 100}
+                    }
+                }
+            }
+        )
+        buckets = response["aggregations"]["labels"]["buckets"]
+        return [b["key"] for b in buckets if b["key"]]
+    except Exception as e:
+        print(f"Erreur récupération métiers ROME: {e}")
+        return []
+
+
+@router.get("/remote-types")
+async def get_remote_types() -> List[str]:
+    """Liste des types de télétravail disponibles"""
+    try:
+        response = es_service.es.search(
+            index=es_service.index_name,
+            body={
+                "size": 0,
+                "aggs": {
+                    "types": {
+                        "terms": {"field": "remote_type", "size": 10}
+                    }
+                }
+            }
+        )
+        buckets = response["aggregations"]["types"]["buckets"]
+        return [b["key"] for b in buckets if b["key"]]
+    except Exception as e:
+        print(f"Erreur récupération types de télétravail: {e}")
         return []

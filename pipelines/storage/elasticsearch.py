@@ -114,11 +114,19 @@ class ElasticsearchClient:
                     
                     # Classification métier
                     "rome_code": {"type": "keyword"},
-                    "rome_label": {"type": "text", "analyzer": "french_analyzer"},
+                    "rome_label": {
+                        "type": "text",
+                        "analyzer": "french_analyzer",
+                        "fields": {"keyword": {"type": "keyword"}}
+                    },
                     "job_category": {"type": "keyword"},
                     "naf_code": {"type": "keyword"},
                     "sector": {"type": "keyword"},
-                    "sector_label": {"type": "text", "analyzer": "french_analyzer"},
+                    "sector_label": {
+                        "type": "text",
+                        "analyzer": "french_analyzer",
+                        "fields": {"keyword": {"type": "keyword"}}
+                    },
                     
                     # Localisation
                     "location_city": {"type": "keyword"},
@@ -174,7 +182,11 @@ class ElasticsearchClient:
                     "collected_at": {"type": "date"},
                     "positions_count": {"type": "integer"},
                     "qualification_code": {"type": "keyword"},
-                    "qualification_label": {"type": "text", "analyzer": "french_analyzer"},
+                    "qualification_label": {
+                        "type": "text",
+                        "analyzer": "french_analyzer",
+                        "fields": {"keyword": {"type": "keyword"}}
+                    },
                     "url": {"type": "keyword"},
                     "raw": {"type": "object", "enabled": False}
                 }

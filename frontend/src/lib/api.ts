@@ -31,6 +31,8 @@ export const offersApi = {
     regions?: string;
     departments?: string;
     contract_types?: string;
+    rome_labels?: string;
+    remote_types?: string;
     salary_min?: number;
     salary_max?: number;
   }): Promise<JobOfferListResponse> => {
@@ -155,7 +157,7 @@ export const filtersApi = {
     return response.data;
   },
 
-  departments: async (region?: string): Promise<string[]> => {
+  departments: async (region?: string): Promise<Array<{code: string, name: string, label: string}>> => {
     const response = await apiClient.get('/filters/departments', {
       params: region ? { region } : undefined,
     });
@@ -181,6 +183,16 @@ export const filtersApi = {
 
   romeCodes: async (): Promise<string[]> => {
     const response = await apiClient.get('/filters/rome-codes');
+    return response.data;
+  },
+
+  romeLabels: async (): Promise<string[]> => {
+    const response = await apiClient.get('/filters/rome-labels');
+    return response.data;
+  },
+
+  remoteTypes: async (): Promise<string[]> => {
+    const response = await apiClient.get('/filters/remote-types');
     return response.data;
   },
 };

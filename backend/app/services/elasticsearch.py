@@ -138,7 +138,14 @@ class ElasticsearchService:
             must_clauses.append({"terms": {"location_region": filters.regions}})
         
         if filters.departments:
-            must_clauses.append({"terms": {"location_department": filters.departments}})
+            # Convertir codes département en patterns pour matcher codes postaux
+            # Ex: "75" → match "75001", "75015", etc.
+            should_dept = []
+            for dept_code in filters.departments:
+                # Utiliser wildcard pour matcher tous les codes postaux du département
+                should_dept.append({"prefix": {"location_department": dept_code}})
+            if should_dept:
+                must_clauses.append({"bool": {"should": should_dept, "minimum_should_match": 1}})
         
         if filters.cities:
             must_clauses.append({"terms": {"location_city.keyword": filters.cities}})
@@ -171,6 +178,9 @@ class ElasticsearchService:
         # Filtres ROME
         if filters.rome_codes:
             must_clauses.append({"terms": {"rome_code": filters.rome_codes}})
+        
+        if filters.rome_labels:
+            must_clauses.append({"terms": {"rome_label.keyword": filters.rome_labels}})
         
         # Filtres compétences
         if filters.skills:
