@@ -9,6 +9,14 @@ JobMarket V3 repart sur une architecture modulaire pour analyser le marche de l'
 - Garder un schema canonique pour accueillir plusieurs sources.
 - Choisir une nouvelle solution de dashboard (etude en cours).
 
+## Fonctionnalités clés
+- ✅ Collecte automatisée via API France Travail
+- ✅ Normalisation multi-sources (schéma canonique)
+- ✅ **Détection automatique du télétravail** (26.8% des offres)
+- ✅ Indexation Elasticsearch avec géolocalisation
+- ✅ API REST FastAPI pour requêtes et analyses
+- ✅ Dashboard React/Next.js (en développement)
+
 ## Architecture cible
 - **Ingestion** : pipeline multi-sources (adapters par source) -> donnees brutes -> normalisees.
 - **Stockage** : moteur d'analyse (Elasticsearch par defaut) et indexation optimisee.
@@ -216,9 +224,28 @@ python scripts/analysis/analyze_field.py
 # Exemples de visualisations (salaires, compétences, etc.)
 python scripts/analysis/examples_visualization.py
 
+# Tester la détection du télétravail
+python scripts/analysis/test_remote_detection.py
+
 # Valider le mapping enrichi
 python tests/test_enriched_mapping.py
 ```
+
+## Filtrer les offres avec télétravail
+
+Le système détecte automatiquement les mentions du télétravail dans les descriptions d'offres.
+
+**Statistiques :** 26.8% des offres (561 sur 2096) mentionnent le télétravail.
+
+```bash
+# Exemples de requêtes Elasticsearch pour filtrer par télétravail
+python scripts/query_remote_offers.py
+
+# Tester la détection sur les données collectées
+python scripts/analysis/test_remote_detection.py
+```
+
+**Documentation complète :** [docs/teletravail-detection.md](docs/teletravail-detection.md)
 
 ## Maintenance
 ```bash

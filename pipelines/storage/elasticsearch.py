@@ -165,6 +165,8 @@ class ElasticsearchClient:
                     "permits_required": {"type": "keyword"},
                     "travel_frequency": {"type": "keyword"},
                     "accessible_handicap": {"type": "boolean"},
+                    "is_remote": {"type": "boolean"},
+                    "remote_type": {"type": "keyword"},
                     
                     # Métadonnées
                     "published_at": {"type": "date"},

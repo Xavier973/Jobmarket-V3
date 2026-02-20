@@ -67,6 +67,8 @@ class JobOffer:
     permits_required: Optional[List[str]] = None  # Permis requis
     travel_frequency: Optional[str] = None  # Fréquence des déplacements
     accessible_handicap: Optional[bool] = None  # Accessible travailleurs handicapés
+    is_remote: Optional[bool] = None  # Télétravail possible (détecté dans la description)
+    remote_type: Optional[str] = None  # Type de télétravail: full_remote, hybrid, occasional
     
     # === Métadonnées ===
     published_at: Optional[str] = None

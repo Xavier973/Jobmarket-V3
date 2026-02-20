@@ -183,6 +183,104 @@ def _parse_weekly_hours(duree_travail: str) -> Optional[float]:
     return None
 
 
+def _detect_remote_work(description: str) -> bool:
+    """Détecte la mention du télétravail dans la description de l'offre.
+    
+    Args:
+        description: Description complète de l'offre
+    
+    Returns:
+        True si le télétravail est mentionné, False sinon
+    
+    Patterns détectés :
+        - télétravail, teletravail (avec ou sans accent)
+        - remote (full remote, hybrid remote)
+        - travail à distance, travail a distance
+        - home office
+        - X jours de télétravail
+    """
+    if not description:
+        return False
+    
+    # Patterns regex pour détecter le télétravail
+    remote_patterns = [
+        r't[eé]l[eé]travail',
+        r'remote',
+        r'travail [aà] distance',
+        r'home office',
+        r'full remote',
+        r'hybrid[e]?',
+        r'\d+\s+jours?\s+(?:de\s+)?t[eé]l[eé]travail',
+        r'possibilit[eé]\s+(?:de\s+)?t[eé]l[eé]travail'
+    ]
+    
+    description_lower = description.lower()
+    return any(re.search(pattern, description_lower) for pattern in remote_patterns)
+
+
+def _extract_remote_type(description: str) -> Optional[str]:
+    """Extrait le type de télétravail mentionné dans l'offre.
+    
+    Args:
+        description: Description complète de l'offre
+    
+    Returns:
+        Type de télétravail : "full_remote", "hybrid", "occasional" ou None
+    
+    Classification :
+        - full_remote : 100% télétravail, full remote, remote complet
+        - hybrid : X jours de télétravail par semaine, télétravail hybride
+        - occasional : possibilité de télétravail (sans précision)
+    """
+    if not description:
+        return None
+    
+    description_lower = description.lower()
+    
+    # Full remote (100% télétravail)
+    full_remote_patterns = [
+        r'full\s*remote',
+        r'100%?\s*(?:en\s+)?t[eé]l[eé]travail',
+        r't[eé]l[eé]travail\s+(?:complet|intégral|total)',
+        r'remote\s+(?:complet|intégral)',
+        r'entièrement\s+(?:en\s+)?t[eé]l[eé]travail'
+    ]
+    
+    for pattern in full_remote_patterns:
+        if re.search(pattern, description_lower):
+            return "full_remote"
+    
+    # Hybrid (X jours par semaine)
+    hybrid_patterns = [
+        r'\d+\s+jours?\s+(?:de\s+)?t[eé]l[eé]travail\s+(?:par\s+semaine)?',
+        r't[eé]l[eé]travail\s+(?:hybride|partiel)',
+        r'hybrid[e]?\s+(?:remote)?',
+        r'jusqu\'?[aà]\s+\d+\s+jours?\s+(?:de\s+)?t[eé]l[eé]travail'
+    ]
+    
+    for pattern in hybrid_patterns:
+        if re.search(pattern, description_lower):
+            return "hybrid"
+    
+    # Occasional (possibilité sans précision)
+    occasional_patterns = [
+        r'possibilit[eé]\s+(?:de\s+)?t[eé]l[eé]travail',
+        r't[eé]l[eé]travail\s+possible',
+        r't[eé]l[eé]travail\s+occasionnel',
+        r'ponctuellement\s+en\s+t[eé]l[eé]travail'
+    ]
+    
+    for pattern in occasional_patterns:
+        if re.search(pattern, description_lower):
+            return "occasional"
+    
+    # Si télétravail mentionné mais type non identifié, considérer comme occasional
+    if _detect_remote_work(description):
+        return "occasional"
+    
+    return None
+
+
 def map_france_travail(raw_offer: Dict[str, Any], include_raw: bool = False) -> JobOffer:
     """Mappe les données brutes France Travail vers le modèle JobOffer enrichi.
     
@@ -259,6 +357,8 @@ def map_france_travail(raw_offer: Dict[str, Any], include_raw: bool = False) -> 
     permits_required = _extract_permits(raw_offer.get("permis", []))
     travel_frequency = raw_offer.get("deplacementLibelle")
     accessible_handicap = raw_offer.get("accessibleTH")
+    is_remote = _detect_remote_work(description)
+    remote_type = _extract_remote_type(description)
     
     # === Métadonnées ===
     published_at = raw_offer.get("dateCreation") or raw_offer.get("datePublication")
@@ -329,6 +429,8 @@ def map_france_travail(raw_offer: Dict[str, Any], include_raw: bool = False) -> 
         permits_required=permits_required,
         travel_frequency=travel_frequency,
         accessible_handicap=accessible_handicap,
+        is_remote=is_remote,
+        remote_type=remote_type,
         
         # Métadonnées
         published_at=published_at,

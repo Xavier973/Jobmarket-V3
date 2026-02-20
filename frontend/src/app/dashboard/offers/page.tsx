@@ -35,7 +35,7 @@ export default function OffersPage() {
 
   if (loading && page === 1) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-20">
         <div className="text-lg">Chargement des offres...</div>
       </div>
     );
@@ -43,15 +43,14 @@ export default function OffersPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-20">
         <div className="text-red-600">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Offres d'emploi</h1>
           <p className="mt-2 text-sm text-gray-600">
@@ -82,6 +81,11 @@ export default function OffersPage() {
                         {offer.contract_type && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             {offer.contract_type}
+                          </span>
+                        )}
+                        {offer.is_remote && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            🏠 Télétravail
                           </span>
                         )}
                         {offer.salary_min && offer.salary_max && (
@@ -140,7 +144,6 @@ export default function OffersPage() {
             Suivant
           </button>
         </div>
-      </div>
     </div>
   );
 }

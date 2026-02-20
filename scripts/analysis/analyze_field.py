@@ -53,6 +53,8 @@ def get_available_fields() -> List[tuple[int, str, str]]:
         ("company_adapted", "Entreprise adaptée"),
         ("travel_frequency", "Fréquence des déplacements"),
         ("accessible_handicap", "Accessible handicapés"),
+        ("is_remote", "Télétravail possible (booléen)"),
+        ("remote_type", "Type de télétravail (full_remote/hybrid/occasional)"),
         ("positions_count", "Nombre de postes"),
         ("qualification_code", "Code qualification"),
         ("qualification_label", "Libellé qualification"),

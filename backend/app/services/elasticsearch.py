@@ -147,6 +147,14 @@ class ElasticsearchService:
         if filters.contract_types:
             must_clauses.append({"terms": {"contract_type": filters.contract_types}})
         
+        # Filtre télétravail
+        if filters.is_remote is not None:
+            must_clauses.append({"term": {"is_remote": filters.is_remote}})
+        
+        # Filtre type de télétravail
+        if filters.remote_types:
+            must_clauses.append({"terms": {"remote_type": filters.remote_types}})
+        
         # Filtres salaire
         if filters.salary_min is not None or filters.salary_max is not None:
             range_query = {}

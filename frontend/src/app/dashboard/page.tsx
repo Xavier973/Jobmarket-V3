@@ -33,7 +33,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Chargement des données...</p>
@@ -44,7 +44,7 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-20">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-lg">
           <h2 className="text-red-800 font-semibold text-lg mb-2">Erreur</h2>
           <p className="text-red-600">{error}</p>
@@ -62,34 +62,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">
-              JobMarket Dashboard
-            </h1>
-            <nav className="flex gap-6">
-              <a href="/dashboard" className="text-primary-600 font-semibold">
-                Vue d'ensemble
-              </a>
-              <a href="/dashboard/offers" className="text-gray-600 hover:text-gray-900">
-                Offres
-              </a>
-              <a href="/dashboard/analytics" className="text-gray-600 hover:text-gray-900">
-                Analytics
-              </a>
-              <a href="/dashboard/map" className="text-gray-600 hover:text-gray-900">
-                Carte
-              </a>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <KPICard
@@ -171,7 +144,6 @@ export default function DashboardPage() {
             <p className="text-gray-500 text-center py-8">Aucune donnée disponible</p>
           )}
         </div>
-      </main>
     </div>
   )
 }
@@ -208,37 +180,76 @@ function KPICard({
 function TimelineChart({ data }: { data: TimelineData[] }) {
   if (!data || data.length === 0) return null
 
-  const maxCount = Math.max(...data.map(d => d.count))
+  // Filtrer les données récentes (3 derniers mois environ)
+  const now = new Date()
+  const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+  
+  const filteredData = data
+    .filter(point => {
+      const date = new Date(point.date)
+      return date >= threeMonthsAgo && date <= now
+    })
+    .filter(point => point.count > 0) // Ne garder que les semaines avec des offres
+
+  if (filteredData.length === 0) {
+    return <p className="text-gray-500 text-center py-8">Aucune donnée récente disponible</p>
+  }
+
+  const maxCount = Math.max(...filteredData.map(d => d.count))
 
   return (
-    <div className="space-y-2">
-      {data.map((point, index) => {
-        const percentage = (point.count / maxCount) * 100
-        const date = new Date(point.date)
-        const formattedDate = date.toLocaleDateString('fr-FR', { 
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
-        })
+    <div className="overflow-x-auto pb-4">
+      <div className="flex items-end gap-3 min-h-[350px] px-4" style={{ minWidth: `${filteredData.length * 80}px` }}>
+        {filteredData.map((point, index) => {
+          const heightPercentage = maxCount > 0 ? (point.count / maxCount) * 100 : 0
+          const date = new Date(point.date)
+          const formattedDate = date.toLocaleDateString('fr-FR', { 
+            day: '2-digit',
+            month: 'short'
+          })
+          const year = date.getFullYear()
+          
+          // Afficher l'année uniquement à la première barre ou quand l'année change
+          const previousYear = index > 0 ? new Date(filteredData[index - 1].date).getFullYear() : null
+          const showYear = index === 0 || (previousYear !== null && previousYear !== year)
 
-        return (
-          <div key={index} className="flex items-center gap-3">
-            <div className="w-32 text-sm text-gray-600 font-medium">
-              {formattedDate}
-            </div>
-            <div className="flex-1 bg-gray-100 rounded-full h-8 relative">
-              <div
-                className="bg-gradient-to-r from-primary-500 to-primary-600 h-8 rounded-full flex items-center justify-end px-3 transition-all duration-500"
-                style={{ width: `${Math.max(percentage, 5)}%` }}
-              >
-                <span className="text-white text-sm font-semibold">
-                  {point.count}
-                </span>
+          return (
+            <div key={index} className="flex flex-col items-center gap-2" style={{ minWidth: '60px' }}>
+              {/* Barre verticale */}
+              <div className="relative flex items-end justify-center w-full" style={{ height: '280px' }}>
+                <div
+                  className="bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg w-full transition-all duration-300 hover:from-blue-700 hover:to-blue-500 cursor-pointer shadow-md relative group"
+                  style={{ height: `${Math.max(heightPercentage, 5)}%` }}
+                  title={`${point.count} offres publiées`}
+                >
+                  {/* Afficher le nombre au-dessus de la barre */}
+                  <div className="absolute -top-7 left-1/2 transform -translate-x-1/2 text-sm font-bold text-gray-800 whitespace-nowrap">
+                    {point.count}
+                  </div>
+                  
+                  {/* Tooltip au survol */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                    Semaine du {formattedDate}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Date en dessous */}
+              <div className="text-xs text-gray-600 text-center font-medium w-full">
+                <div className="font-semibold">{formattedDate}</div>
+                {showYear && (
+                  <div className="text-gray-500 font-normal text-[10px] mt-0.5">{year}</div>
+                )}
               </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
+      
+      {/* Légende */}
+      <div className="text-center mt-4 text-sm text-gray-500">
+        📊 Évolution hebdomadaire des offres publiées (3 derniers mois)
+      </div>
     </div>
   )
 }

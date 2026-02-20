@@ -25,6 +25,8 @@ export interface JobOffer {
   contract_duration?: string;
   work_schedule?: string;
   is_alternance?: boolean;
+  is_remote?: boolean;
+  remote_type?: string; // "full_remote" | "hybrid" | "occasional"
   
   // Salaire
   salary_min?: number;

@@ -54,7 +54,7 @@ export default function MapPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-20">
         <div className="text-lg">Chargement de la carte...</div>
       </div>
     );
@@ -62,15 +62,14 @@ export default function MapPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-20">
         <div className="text-red-600">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Carte des offres</h1>
           <p className="mt-2 text-sm text-gray-600">
@@ -179,7 +178,6 @@ export default function MapPage() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

@@ -17,6 +17,8 @@ class FilterRequest(BaseModel):
     experience_levels: Optional[List[str]] = Field(None, description="Niveaux d'expérience")
     rome_codes: Optional[List[str]] = Field(None, description="Codes ROME")
     skills: Optional[List[str]] = Field(None, description="Compétences requises")
+    is_remote: Optional[bool] = Field(None, description="Filtrer par télétravail (True=uniquement télétravail)")
+    remote_types: Optional[List[str]] = Field(None, description="Types de télétravail (full_remote, hybrid, occasional)")
     date_from: Optional[str] = Field(None, description="Date de publication minimale (ISO)")
     date_to: Optional[str] = Field(None, description="Date de publication maximale (ISO)")
 
