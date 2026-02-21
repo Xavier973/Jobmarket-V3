@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { statsApi, analyticsApi } from '@/lib/api'
-import type { OverviewStats, TimelineData } from '@/types/stats'
+import type { OverviewStats, TimelineData, GeographyData } from '@/types/stats'
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<OverviewStats | null>(null)
   const [timeline, setTimeline] = useState<TimelineData[]>([])
+  const [topDepartments, setTopDepartments] = useState<GeographyData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -14,12 +15,14 @@ export default function DashboardPage() {
     async function fetchStats() {
       try {
         setLoading(true)
-        const [statsData, timelineData] = await Promise.all([
+        const [statsData, timelineData, departmentsData] = await Promise.all([
           statsApi.overview(),
-          analyticsApi.timeline({ interval: 'week' })
+          analyticsApi.timeline({ interval: 'week' }),
+          analyticsApi.geography({ level: 'department' })
         ])
         setStats(statsData)
         setTimeline(timelineData)
+        setTopDepartments(departmentsData.slice(0, 3))
       } catch (err) {
         console.error('Erreur chargement stats:', err)
         setError('Impossible de charger les statistiques. Vérifiez que le backend est démarré.')
@@ -82,8 +85,8 @@ export default function DashboardPage() {
             color="purple"
           />
           <KPICard
-            title="Régions"
-            value={stats?.top_regions?.length.toString() || '0'}
+            title="Départements"
+            value={topDepartments.length.toString()}
             subtitle="couvertes"
             color="orange"
           />
@@ -91,15 +94,15 @@ export default function DashboardPage() {
 
         {/* Top Regions & Skills */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Top Regions */}
+          {/* Top Departments */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Top 3 Régions</h2>
+            <h2 className="text-xl font-semibold mb-4">Top 3 Départements</h2>
             <div className="space-y-3">
-              {stats?.top_regions?.map((region, index) => (
+              {topDepartments.map((department, index) => (
                 <div key={index} className="flex justify-between items-center">
-                  <span className="text-gray-700">{region.location}</span>
+                  <span className="text-gray-700">{department.location}</span>
                   <span className="font-semibold text-primary-600">
-                    {region.count} offres
+                    {department.count} offres
                   </span>
                 </div>
               ))}

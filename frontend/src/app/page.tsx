@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, BarChart3, MapPin, TrendingUp, Database } from 'lucide-react'
 
 export default function Home() {
@@ -8,12 +9,16 @@ export default function Home() {
       <section className="bg-gradient-to-br from-primary-600 to-primary-800 text-white py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl font-bold mb-6">
-              JobMarket V3
-            </h1>
-            <p className="text-xl mb-8 opacity-90">
-              Analytics du marché de l'emploi data en France
-            </p>
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/logo.png"
+                alt="JobMarket V3 Logo"
+                width={240}
+                height={240}
+                priority
+                className="drop-shadow-lg"
+              />
+            </div>
             <p className="text-lg mb-10 opacity-80">
               Explorez les tendances, salaires, compétences et opportunités dans l'écosystème data français
             </p>
@@ -109,7 +114,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-8">
         <div className="container mx-auto px-4 text-center">
-          <p>© 2026 JobMarket V3 - Projet Portfolio</p>
+          <p>© 2026 DataMarket - Projet Portfolio</p>
           <p className="text-sm mt-2">
             Built with Next.js, FastAPI, Elasticsearch & React
           </p>

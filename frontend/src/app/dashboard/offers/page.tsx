@@ -8,6 +8,7 @@ export default function OffersPage() {
   const [offers, setOffers] = useState<JobOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -82,10 +83,42 @@ export default function OffersPage() {
     setSelectedRomeLabel('');
     setSelectedDepartment('');
     setSelectedRemoteType('');
+    setExpandedDescriptions(new Set());
     setPage(1);
   };
 
+  const toggleDescription = (offerId: string) => {
+    setExpandedDescriptions((prev) => {
+      const next = new Set(prev);
+      if (next.has(offerId)) {
+        next.delete(offerId);
+      } else {
+        next.add(offerId);
+      }
+      return next;
+    });
+  };
+
   const hasActiveFilters = selectedRomeLabel || selectedDepartment || selectedRemoteType;
+
+  const getRemoteLabel = (offer: JobOffer) => {
+    const remoteType = offer.remote_type?.toLowerCase();
+
+    if (remoteType === 'full_remote' || remoteType === 'full-remote' || remoteType === 'full remote') {
+      return '100% Télétravail';
+    }
+    if (remoteType === 'hybrid' || remoteType === 'hybride') {
+      return 'Télétravail hybride';
+    }
+    if (remoteType === 'occasional' || remoteType === 'occasionnel') {
+      return 'Télétravail occasionnel';
+    }
+    if (offer.is_remote || !!offer.remote_type) {
+      return 'Télétravail';
+    }
+
+    return null;
+  };
 
   if (loading && page === 1 && offers.length === 0) {
     return (
@@ -221,17 +254,41 @@ export default function OffersPage() {
           </div>
         ) : (
           <ul className="divide-y divide-gray-200">
-            {offers.map((offer) => (
+            {offers.map((offer) => {
+              const isExpanded = expandedDescriptions.has(offer.id);
+              const hasLongDescription = !!offer.description && offer.description.length > 200;
+              const descriptionToDisplay = isExpanded
+                ? offer.description
+                : offer.description?.substring(0, 200);
+
+              return (
               <li key={offer.id}>
                 <div className="px-4 py-4 sm:px-6 hover:bg-gray-50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-medium text-blue-600 truncate">
-                        {offer.title}
-                      </h3>
+                      {offer.url ? (
+                        <a
+                          href={offer.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-lg font-medium text-blue-600 hover:text-blue-800"
+                        >
+                          <span className="truncate">{offer.title}</span>
+                          <span className="text-sm" aria-hidden="true">↗</span>
+                        </a>
+                      ) : (
+                        <h3 className="text-lg font-medium text-blue-600 truncate">
+                          {offer.title}
+                        </h3>
+                      )}
                       <p className="mt-1 text-sm text-gray-600">
                         {offer.company_name}
                       </p>
+                      {offer.rome_label && (
+                        <p className="mt-1 text-sm text-gray-700">
+                          Métier ROME : {offer.rome_label}
+                        </p>
+                      )}
                       <div className="mt-2 flex flex-wrap gap-2">
                         {offer.location_city && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -243,9 +300,9 @@ export default function OffersPage() {
                             {offer.contract_type}
                           </span>
                         )}
-                        {offer.is_remote && (
+                        {getRemoteLabel(offer) && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            🏠 Télétravail
+                            🏠 {getRemoteLabel(offer)}
                           </span>
                         )}
                         {offer.salary_min && offer.salary_max && (
@@ -262,25 +319,26 @@ export default function OffersPage() {
                     </div>
                   </div>
                   {offer.description && (
-                    <p className="mt-3 text-sm text-gray-700 line-clamp-2">
-                      {offer.description.substring(0, 200)}...
-                    </p>
-                  )}
-                  {offer.url && (
-                    <div className="mt-3">
-                      <a
-                        href={offer.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        Voir l'offre →
-                      </a>
+                    <div
+                      className={`mt-3 overflow-hidden transition-all duration-200 ease-in-out ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-24 opacity-95'}`}
+                    >
+                      <p className="text-sm text-gray-700 whitespace-pre-line break-words transition-opacity duration-200">
+                        {descriptionToDisplay}
+                        {!isExpanded && hasLongDescription ? '...' : ''}
+                      </p>
+                      {hasLongDescription && (
+                        <button
+                          onClick={() => toggleDescription(offer.id)}
+                          className="mt-1 text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          {isExpanded ? 'Voir moins' : 'Voir plus'}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
               </li>
-            ))}
+            )})}
           </ul>
         )}
       </div>

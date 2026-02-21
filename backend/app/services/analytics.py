@@ -162,7 +162,7 @@ class AnalyticsService:
         query = self.es_service._build_query(filters)
         
         field_mapping = {
-            "region": "location_city",
+            "region": "location_region",
             "department": "location_department",
             "city": "location_city"
         }

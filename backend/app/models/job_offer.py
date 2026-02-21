@@ -7,21 +7,32 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+class LocationCoordinates(BaseModel):
+    """Coordonnées géographiques"""
+    lat: float
+    lon: float
+
+
 class JobOfferResponse(BaseModel):
     """Réponse API simplifiée pour liste d'offres"""
     id: str
     source: str
     title: Optional[str] = None
     company_name: Optional[str] = None
+    description: Optional[str] = None
     location_city: Optional[str] = None
     location_region: Optional[str] = None
+    location_coordinates: Optional[LocationCoordinates] = None
     contract_type: Optional[str] = None
+    is_remote: Optional[bool] = None
+    remote_type: Optional[str] = None
     salary_min: Optional[float] = None
     salary_max: Optional[float] = None
     salary_unit: Optional[str] = None
     published_at: Optional[str] = None
     rome_code: Optional[str] = None
     rome_label: Optional[str] = None
+    url: Optional[str] = None
 
 
 class JobOfferDetail(BaseModel):

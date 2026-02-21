@@ -183,6 +183,27 @@ def _parse_weekly_hours(duree_travail: str) -> Optional[float]:
     return None
 
 
+def _normalize_location_city(location_city: Optional[str]) -> Optional[str]:
+    """Normalise le libellé de ville pour éviter les doublons de casse.
+
+    Exemples:
+        "75 - PARIS" -> "75 - Paris"
+        "75 - paris 11" -> "75 - Paris 11"
+    """
+    if not location_city:
+        return None
+
+    cleaned = re.sub(r"\s+", " ", location_city).strip()
+    if not cleaned:
+        return None
+
+    if " - " in cleaned:
+        prefix, city_label = cleaned.split(" - ", 1)
+        return f"{prefix.strip()} - {city_label.strip().title()}"
+
+    return cleaned.title()
+
+
 def _detect_remote_work(description: str) -> bool:
     """Détecte la mention du télétravail dans la description de l'offre.
     
@@ -307,7 +328,8 @@ def map_france_travail(raw_offer: Dict[str, Any], include_raw: bool = False) -> 
     sector_label = raw_offer.get("secteurActiviteLibelle")
     
     # === Localisation ===
-    location_city = _get_nested(raw_offer, "lieuTravail.libelle") or raw_offer.get("lieu")
+    location_city_raw = _get_nested(raw_offer, "lieuTravail.libelle") or raw_offer.get("lieu")
+    location_city = _normalize_location_city(location_city_raw)
     location_department = _get_nested(raw_offer, "lieuTravail.codePostal")
     location_latitude = _get_nested(raw_offer, "lieuTravail.latitude")
     location_longitude = _get_nested(raw_offer, "lieuTravail.longitude")

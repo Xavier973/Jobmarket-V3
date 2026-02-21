@@ -51,6 +51,8 @@ python scripts/maintenance/regenerate_normalized.py
 ## Bonnes pratiques
 
 - **Avant collecte massive :** Exécuter `fix_line_endings.py` si encodage problématique
-- **Après modification du mapping :** Exécuter `regenerate_normalized.py` pour appliquer les changements
+- **Après modification du mapping :**
+  - Exécuter `regenerate_normalized.py` pour appliquer les changements
+  - Exécuter `index_to_elasticsearch.py` pour indexer les fichiers normalisés optimisés dans Elasticsearch
 - **Avant indexation Elasticsearch :** Utiliser les fichiers normalisés optimisés (sans raw)
 - **Pour audit/debug :** Les fichiers `data/raw/` conservent toujours les réponses complètes de l'API
